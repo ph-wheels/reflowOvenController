@@ -31,7 +31,7 @@
 #endif
 // ----------------------------------------------------------------------------
 
-const char * ver = "3.1";
+const char * ver = "3.1a";
 
 // ----------------------------------------------------------------------------
 
@@ -73,6 +73,7 @@ const char * ver = "3.1";
 volatile uint32_t timerTicks     = 0;
 volatile uint32_t zeroCrossTicks = 0;
 volatile uint8_t  phaseCounter   = 0;
+volatile uint32_t zeroCrossTickPrev = 0;
 
 char buf[20]; // generic char buffer
 
@@ -725,6 +726,12 @@ void abortWithError(int error) {
     tft.println("Power off,");
     tft.setCursor(10, 75);
     tft.println("check connections");
+  } else if (error == 999) {
+    		tft.println("AC zeroCross failure");
+   		tft.setCursor(10, 30);
+   		tft.print("timer1 cnt   : "); tft.print((uint32_t)(timerTicks));
+   		tft.setCursor(10, 45);
+   		tft.print("zeroCross cnt: "); tft.print((uint32_t)(zeroCrossTicks));
   }
   else {
     tft.println("Temperature"); 
@@ -960,7 +967,12 @@ void setup() {
   #endif
   tft.setCursor(7, 119);
   tft.print("(c)2014 karl@pitrich.com");
+  zeroCrossTickPrev = zeroCrossTicks;
   delay(1000);
+  // test to see if zeroCross timer is working 
+	if ((zeroCrossTicks-zeroCrossTickPrev) == 0) {
+  		  abortWithError(999);
+  }
 #endif
 
   // setup /CS line for thermocouple and read initial temperature
